@@ -46,8 +46,8 @@ def getThought():
 	randNum=random.random()
 	thought = Thought.query().filter(Thought.index >= randNum).order(Thought.index) #documentation here is real shitty, just use this as a model. This builds a query
 	test = thought.get()	#this runs the query and gets the first result. use fetch($num) to get $num results
-	if test is None:		
-		thought = Thought.query().filter(Thought.index <= randNum).order(Thought.index) #documentation here is real shitty, just use this as a model. This builds a query
+	if test is None:		#if randNum is higher than any indices
+		thought = Thought.query().filter(Thought.index <= randNum).order(Thought.index) #reverse 
 		test = thought.get()
 		return ThoughtText(text=test.text, testNum=randNum)
 	else:
