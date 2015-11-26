@@ -22,7 +22,7 @@ class ThoughtsApi(remote.Service):
 	#http_method is the method (GET or POST) and the name is the name of the method in the API, which seems kinda redundant but is necessary
 	def thought_put(self, request):
 		putThought(request.text) #calls function that actually puts the text passed into the request in DB
-		return ThoughtText(text=request.text)	#shitty debug
+		return ThoughtText(text=request.text) #debug?
 		
 	@endpoints.method(message_types.VoidMessage, ThoughtText, path='getThought', http_method='GET',name='getThought')
 	#as above, only ThoughtText here is the response
