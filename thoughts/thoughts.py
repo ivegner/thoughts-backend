@@ -5,6 +5,7 @@ from protorpc import messages
 from protorpc import message_types
 from protorpc import remote
 import cloudstorage as gcs	#in the lib folder
+import logging
 
 package = 'Thoughts'	#package name for organization
 
@@ -38,9 +39,10 @@ class ThoughtsApi(remote.Service):
 ############### Database Interaction Part Starts ###############
 
 class Thought(ndb.Model):	#database entity class with a bunch of properties
-	gcsObjectName = ndb.StringProperty(indexed=False)
+	gcsObjectName = ndb.StringProperty()
 	date = ndb.DateTimeProperty(auto_now_add=True)
 	index = ndb.FloatProperty()	#random index for random outputting
+	type = ndb.StringProperty()
 
 def putThought(textIn, imgIn):
 	randIndex = random.random()
@@ -48,29 +50,45 @@ def putThought(textIn, imgIn):
 	if textIn != None:
 		with gcs.open(filename, mode="w", content_type="text/plain") as f:	#makes file in bucketName with name randIndex
 			f.write(str(textIn))
-			dbEntry = Thought(gcsObjectName=filename, index = randIndex)
+			dbEntry = Thought(gcsObjectName=filename, index = randIndex, type = "text/plain")
 			dbEntry.put()
+			f.close()
 	elif imgIn != None:
 		with gcs.open(filename, "w", content_type="image/png") as f:	#makes file in bucketName with name randIndex
 			f.write(imgIn)
-			dbEntry = Thought(gcsObjectName=filename, index = randIndex)
+			dbEntry = Thought(gcsObjectName=filename, index = randIndex, type = "image/png")
 			dbEntry.put()
+			f.close()
 	else:
 		return IOThought(text="No Submission Made")
+	
 	return IOThought(text="Submission Made")
 
 def getThought():
 	randNum=random.random()
 	thought = Thought.query().filter(Thought.index >= randNum).order(Thought.index) #documentation here is real shitty, just use this as a model. This builds a query
-	test = thought.get()	#this runs the query and gets the first result. use fetch($num) to get $num results
-	if test is None:		#if randNum is higher than any indices
+	dbEntry = thought.get()	#this runs the query and gets the first result.
+	if dbEntry is None:		#if randNum is higher than any indices
 		thought = Thought.query().filter(Thought.index <= randNum).order(Thought.index) #reverse 
-		test = getFromDB(thought.get())
-		return IOThought(text=test, testNum=randNum)
-	else:
-		print "\n\nThe query was: " + str(thought) #displays after server is shut down
-		return IOThought(text=test.text, testNum=randNum)	#response
-def getFromDB(thoughtQueryResult):
-	return thoughtQueryResult.text
+		dbEntry = thought.get()
+	gcsFilename = dbEntry.gcsObjectName	#get filename
+	dbEntryType = dbEntry.type	#get type
+	
+	try:
+		submission = getFromDB(gcsFilename, dbEntryType)
+		if dbEntryType == "text/plain":
+			return IOThought(text=submission)
+		elif dbEntryType == "image/png":
+			return IOThought(img=submission)
+	except Exception as e: 
+		return IOThought(text=e)
+	
+def getFromDB(filename, type):
+	with gcs.open(filename) as f:
+		r = f.read()
+		f.close()
+		logging.debug(filename)
+		return r
+		
 	
 APPLICATION = endpoints.api_server([ThoughtsApi]) #passed into app.yaml to actually start the API 
