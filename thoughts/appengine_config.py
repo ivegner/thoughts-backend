@@ -1,13 +1,12 @@
+from google.appengine.ext import vendor
 import os
-import sys
 
-ENDPOINTS_PROJECT_DIR = os.path.join( os.path.dirname( __file__ ),
-                                      'libraries/endpoints_proto_datastore' )
-AUTHTOPUS_PROJECT_DIR = os.path.join( os.path.dirname( __file__ ),
-                                      'libraries/authtopus' )
-GCS_PROJECT_DIR = os.path.join( os.path.dirname( __file__ ),
-                                      'libraries/cloudstorage' )
+# Add any libraries installed in the lib folder.
+vendor.add(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ext'))
+vendor.add(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ext/authtopus'))
+vendor.add(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ext/cloudstorage'))
+vendor.add(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ext/endpoints_proto_datastore'))
 
-sys.path.extend( [ ENDPOINTS_PROJECT_DIR, AUTHTOPUS_PROJECT_DIR,
-				   GCS_PROJECT_DIR,
-                  ] )
+
+
+

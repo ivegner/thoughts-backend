@@ -19,7 +19,7 @@ these are:
                       properties
 """
 
-from .. import utils
+from endpoints_proto_datastore import utils
 
 from protorpc import messages
 

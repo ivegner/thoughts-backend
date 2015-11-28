@@ -1,0 +1,9 @@
+indexes:
+
+- kind: VerifyEmailUserToken
+  properties:
+  - name: email
+  - name: subject
+  - name: user
+  - name: created
+    direction: desc

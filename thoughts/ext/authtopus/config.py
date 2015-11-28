@@ -1,5 +1,5 @@
 # The "from" address for support emails
-EMAIL_SENDER = "support@example.com"
+EMAIL_SENDER = "Thoughts Support <ivanvegner@gmail.com>"
 
 # Text for email verification emails
 EMAIL_VERIFY_SUBJECT = "Please verify your email address for Example.com"

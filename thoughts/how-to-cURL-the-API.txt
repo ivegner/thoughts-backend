@@ -1,0 +1,10 @@
+How to verify email:
+curl -XPOST -H 'Authorization: TOKEN_FROM_LOGIN_METHOD'\ 
+-H "Content-type: application/json" -d '{"POST_KEY": "POST_VALUE"}'\ 
+'https://5-dot-thoughtsapp-1141.appspot.com/_ah/api/auth/v1.0/METHOD_NAME'
+
+How to test the POST:
+curl -XPOST -H 'Authorization: TOKEN_FROM_LOGIN_METHOD' \
+-H "Content-type: application/json" -d '{"text": "POST_VALUE"}' \
+'https://5-dot-thoughtsapp-1141.appspot.com/_ah/api/thoughts/VERSION/putThought
+// VERSION would most likely be v5, possibly v6

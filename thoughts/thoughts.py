@@ -1,11 +1,16 @@
-import random	#for the index
+
 from google.appengine.ext import ndb
 import endpoints
 from protorpc import messages
 from protorpc import message_types
 from protorpc import remote
-import cloudstorage as gcs	#in the lib folder
 import logging
+
+import cloudstorage as gcs
+from authtopus.api import Auth
+from authtopus.cron import CleanupTokensHandler, CleanupUsersHandler
+import webapp2	#for cron
+import random	#for the index
 
 package = 'Thoughts'	#package name for organization
 
@@ -17,7 +22,7 @@ class IOThought(messages.Message):
 	text = messages.StringField(1, default = None)		#string param with ID 1
 	img = messages.BytesField(2, default = None)
 	
-@endpoints.api(name='thoughts', version='v4')	#API declaration decorator
+@endpoints.api(name='thoughts', version='v5')	#API declaration decorator
 class ThoughtsApi(remote.Service):
 
 	RETURN_THOUGHT_RESOURCE = endpoints.ResourceContainer(IOThought)	#declares that the input will be an IOThought object
@@ -25,6 +30,7 @@ class ThoughtsApi(remote.Service):
 	@endpoints.method(RETURN_THOUGHT_RESOURCE,IOThought,path="putThought",http_method='POST',name='putThought')
 	#RETURN_THOUGHT_RESOURCE is what the method expects in the request, IOThought is the return, path is the url path to the method, 
 	#http_method is the method (GET or POST) and the name is the name of the method in the API, which seems kinda redundant but is necessary
+
 	def thought_put(self, request):
 		submitMessage = putThought(request) #calls function that actually puts the text passed into the request in DB
 		return submitMessage
@@ -54,6 +60,7 @@ def _put(content_type, payload):
 		return dbEntry
 		
 def putThought(request):
+	checkIfVerified()
 	if request.text != None:
 		gcsObject = _put("text/plain", str(request.text))
 	elif request.img != None:
@@ -87,6 +94,17 @@ def getFromDB(filename, type):
 		r = f.read()
 		f.close()
 		return r
-		
+################### Authentication Part Starts ################
+
+def checkIfVerified():
+	user = Auth.get_current_user( verified_email_required=True ) #check if user is logged in and has a verified email
+	if user is None:
+		raise endpoints.UnauthorizedException( 'Invalid credentials' )
+
 	
-APPLICATION = endpoints.api_server([ThoughtsApi]) #passed into app.yaml to actually start the API 
+API = endpoints.api_server([Auth, ThoughtsApi], restricted = False) #passed into app.yaml to actually start the APIs
+
+CRON = webapp2.WSGIApplication(
+  [ ( '/cron/auth/cleanup-token/?', CleanupTokensHandler ),
+    ( '/cron/auth/cleanup-users/?', CleanupUsersHandler ), ]
+) #this is to clean up tokens.
