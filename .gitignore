@@ -1,2 +1,3 @@
 thoughts/curl-format.txt
 .gitignore
+thoughts/*.pyc

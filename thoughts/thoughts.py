@@ -71,6 +71,7 @@ def putThought(request):
 	return IOThought(text="Submission made to " + gcsObject.gcsObjectName)
 
 def getThought():
+	checkIfVerified()
 	randNum=random.random()
 	thought = Thought.query().filter(Thought.index >= randNum).order(Thought.index) #documentation here is real shitty, just use this as a model. This builds a query
 	dbEntry = thought.get()	#this runs the query and gets the first result.
